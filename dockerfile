@@ -1,12 +1,12 @@
 FROM ubuntu:22.04
-RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
-    sed -i s@/security.ubuntu.com/@/mirrors.ustc.edu.cn/@g /etc/apt/sources.list && \
-    sed -i s@/ports.ubuntu.com/@/mirrors.ustc.edu.cn/@g /etc/apt/sources.list  && \
-    echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
-    echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
-    echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/no-lang
-RUN	apt-get update && \
-apt-get -y install wget bzip2 xz-utils lib32z1 cmake vim 
+# RUN sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+#     sed -i s@/security.ubuntu.com/@/mirrors.ustc.edu.cn/@g /etc/apt/sources.list && \
+#     sed -i s@/ports.ubuntu.com/@/mirrors.ustc.edu.cn/@g /etc/apt/sources.list  && \
+#     echo "force-unsafe-io" > /etc/dpkg/dpkg.cfg.d/02apt-speedup && \
+#     echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache && \
+#     echo 'Acquire::Languages "none";' > /etc/apt/apt.conf.d/no-lang
+RUN	apt update && \
+apt -y install wget bzip2 xz-utils lib32z1 cmake vim 
 #  ros-kinetic-cv-bridge ros-kinetic-image-transport  qtmultimedia5-dev ros-kinetic-cv-bridge  git && \
 #     rm -r /var/lib/apt/lists/*
 RUN wget https://ftp.denx.de/pub/u-boot/u-boot-2013.01.tar.bz2
@@ -61,7 +61,43 @@ COPY ./fs4412/Network/fs4412.c /u-boot-2013.01/board/samsung/fs4412/fs4412.c
 RUN chmod a+x  /u-boot-2013.01/build.sh
 RUN  cd /u-boot-2013.01 && ./build.sh
 
-COPY entrypoint.sh /entrypoint.sh
+
+COPY ./fs4412/EMMC/movi.c /u-boot-2013.01/arch/arm/cpu/armv7/exynos/
+
+COPY ./fs4412/EMMC/Makefile /u-boot-2013.01/arch/arm/cpu/armv7/exynos/Makefile
+
+COPY ./fs4412/EMMC/fs4412.c  /u-boot-2013.01/board/samsung/fs4412/fs4412.c
+
+COPY  ./fs4412/EMMC/command/*   /u-boot-2013.01/common/
+
+COPY ./fs4412/EMMC/driver/mmc.c  /u-boot-2013.01/drivers/mmc/
+
+COPY ./fs4412/EMMC/driver/s5p_mshc.c  /u-boot-2013.01/drivers/mmc/
+
+COPY ./fs4412/EMMC/driver/include/* /u-boot-2013.01/include/
+
+COPY ./fs4412/EMMC/driver/Makefile  /u-boot-2013.01/drivers/mmc/Makefile
+
+COPY ./fs4412/EMMC/driver/fs4412.h /u-boot-2013.01/include/configs/fs4412.h
+
+RUN  cd /u-boot-2013.01 && ./build.sh
+
+COPY ./fs4412/POWER/pmic_s5m8767.c  /u-boot-2013.01/drivers/power/pmic/
+COPY ./fs4412/POWER/Makefile /u-boot-2013.01/drivers/power/pmic/Makefile
+COPY ./fs4412/POWER/pmic.h /u-boot-2013.01/include/power/pmic.h
+
+COPY ./fs4412/POWER/fs4412.h  /u-boot-2013.01/include/configs/fs4412.h
+
+COPY  ./fs4412/POWER/fs4412.c /u-boot-2013.01/board/samsung/fs4412/fs4412.c
+
+COPY ./fs4412/POWER/drivermakefile/Makefile /u-boot-2013.01/drivers/power/Makefile
+
+COPY ./fs4412/POWER/cpu_info.c /u-boot-2013.01/arch/arm/cpu/armv7/s5p-common/cpu_info.c
+
+RUN  cd /u-boot-2013.01 && ./build.sh
+# COPY ./fs4412/POWER/ /u-boot-2013.01/drivers/power/pmic/Makefile
+
+COPY entrypoint.sh /entrypoint.sh 
 RUN chmod a+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 #origen
